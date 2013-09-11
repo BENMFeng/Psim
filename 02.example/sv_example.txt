@@ -1,0 +1,5 @@
+chromosomeGRCh37-1-1040010bp	deletion	300,2600;900000,3300
+chromosomeGRCh37-1-1040010bp	insertion	16350,TTTTTTGGGGGGGGGCCCCA
+chromosomeGRCh37-1-1040010bp	invertion	37000,2600
+chromosomeGRCh37-1-1040010bp	tandem_repeat	26000,1200,4;132000,3000,2
+chromosomeGRCh37-1-1040010bp	translocation	43000,5000,60000
