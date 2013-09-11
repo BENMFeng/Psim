@@ -917,7 +917,6 @@ sub SequencingSOLiDPE
 	}
 	$count+=2;
 }
-
 close NEWSEQ;
 close NAME;
 close OUT1;
