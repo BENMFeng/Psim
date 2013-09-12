@@ -353,7 +353,7 @@ else{$Circle=0}
 #$Error="0.0005:0.34:0.33:0.33" if(!defined $Error);
 $Error="0.0005" if(!defined $Error);
 #die "Wrong error parameter \n" if(($Error=~tr/:/:/)!=3);
-die "Wrong SNP parameter \n$USAGE" if((!($SNP=~/\d+\.?\d*/) && !(-e $SNP)) || ($SNP=~/\d+\.?\d*/ && $SNP>1));
+die "Wrong SNP parameter \n$USAGE" if((!($SNP=~/\d+\.?\d*/) && !(-e $SNP)) || ($SNP=~/\d+\.\d*/ && $SNP>1));
 die "Wrong SV parameter \n$USAGE" if( !(-e $SV) && (!$SV=~/\d*\.?\d+\:\d+/));
 $Qtype||="!";
 $Qmean||=37;
@@ -587,7 +587,7 @@ sub Main
 	if($SNP ne 0)
 	{
 		my $snptype=0;
-		$snptype=1 if(!($SNP=~/\d\.?\d*/));
+		$snptype=1 if(!($SNP=~/\d\.\d*/));
 		&SNP(\$SEQUENCE,$snptype,$SeqName,$SNP,\@SNP);
 	}
 #RNA-seq sequencing
@@ -691,7 +691,16 @@ sub Library
 		$ltype=$Insert.":".length($Linker);
 		($insert,$insertsd)=split /\:/,$Insert;
 	}
-	my @StartLeng=&PieceGenerate(length($$Sequence),$ltype,$Circle,$Coverage,$FragmentMean,$FragmentSD,$FragLim);
+	my $readmean;
+	if($Command=~/roche/i)
+	{
+		$readmean=$FragmentMean;
+	}
+	else
+	{
+		$readmean=$ReadLeng;
+	}
+	my @StartLeng=&PieceGenerate(length($$Sequence),$ltype,$Circle,$Coverage,$readmean,$FragmentMean,$FragmentSD,$FragLim);
 	$$Sequence.=substr($$Sequence,0,int($FragmentMean*2));
 	$$Sequence.=substr($$Sequence,0,int($insert*2)) if($Command=~/roche/i && $PE);
 

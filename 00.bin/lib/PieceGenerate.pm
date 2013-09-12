@@ -29,10 +29,10 @@ our $VERSION=1.0;
 
 sub PieceGenerate
 {
-	my ($WL,$type,$circle,$Coverage,$Lamada,$sd,$limit)=@_;
+	my ($WL,$type,$circle,$Coverage,$readmean,$Lamada,$sd,$limit)=@_;
 	my @StartLeng;
 	my $lengthlimit=$WL*$Coverage;
-	my $num=int(($WL*$Coverage/$Lamada)+0.5);
+	my $num=int(($WL*$Coverage/$readmean)+0.5);
 	my @length=&normal($num,$Lamada,$sd,$limit);
 	if($type eq 0) #other library types
 	{
