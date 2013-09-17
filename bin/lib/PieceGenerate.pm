@@ -59,6 +59,7 @@ sub PieceGenerate
 	{
 	 	$num=int(($hash{WL}*$hash{Coverage}/$hash{readmean})+0.5);
 	}
+#	print "TEST num is $num\n";
 	my @length=&normal($num,$hash{fragmean},$hash{fragsd},$hash{fraglim});
 	if($hash{type} eq 0) #other library types
 	{
@@ -103,9 +104,17 @@ sub PieceGenerate
 	if($hash{duplp})
 	{
 		my $duplfrag=int($hash{duplp}/(1-$hash{duplp})*$num+0.5);
+#	print "TEST duplfrag is $duplfrag\n";
 		$hash{dupla}||=0.35;
 		$hash{duplb}||=-2;
-		my @dupltimes=&PowerLaw($duplfrag,$hash{dupla},$hash{duplb},$hash{dupll});
+		my @dupltimes=&PowerLaw("r".$duplfrag,$hash{dupla},$hash{duplb},$hash{dupll});
+#my $count=0;
+#foreach(@dupltimes)
+#{
+#	$count+=$_;
+#}
+#print "whole duplication times $count\n";
+
 		foreach my $dt(@dupltimes)
 		{
 			my $j=int(rand($num));
