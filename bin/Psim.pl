@@ -25,6 +25,7 @@ my ($Help,$Command,$Reference,$Circle,$SNP,$SV,$Coverage,$PE,$FragmentMean,$Frag
 my ($Insert,$Linker,$Error,$adapter1,$adapter2,$Qmean,$Qsd,$Header,$Example,$GFF,$CDNA,$CovcDNA,$Qtype,$AmpMean,$AmpSD,%MutationRate,%MutationArray,$Efficiency);
 my $count=0;
 my ($ploidy,$print);
+my ($duplpercent,$dupllimit,$duplpara);
 $Command=$ARGV[0];
 GetOptions(
 	"h"			=>\$Help,
@@ -66,6 +67,9 @@ GetOptions(
 	"effic:s"	=>\$Efficiency,
 	"plo:s"		=>\$ploidy,
 	"pri"		=>\$print,
+	"duplp:s"	=>\$duplpercent,
+	"dupll:s"	=>\$dupllimit,
+	"duplpara:s"=>\$duplpara,
 	);
 
 my $USAGE="
@@ -81,7 +85,7 @@ USAGE:   Used to generate NGS data. The sequencing platform include Illumina
          sequencing sample can have overhang end like palogenome.
 
 Author:  RachelWu\(rachelwu123\@gmail.com\)\, BENM\(BinxiaoFeng\@gmail.com\)
-Version: v1.0
+Version: v1.2
 
 Run:     perl $0 [command] [options]
 
@@ -136,6 +140,10 @@ OPTIONS:
     --qtype <CHAR>        quality type(\!=Sanger format, \@=illumina 1.3~1.8- format, default=\!)
     --qmean <NUM>         peak value of quality score(default=37)
     --qsd <NUM>           standard deviation of quality score(default=1)
+    --duplp <NUM>         duplication reads percent
+    --dupll <NUM>         duplication times limit
+    --duplpara <NUM,NUM>  duplication power low parameters, format as a-b\(such as \"0.3,-2\"\)
+                          warnings: a should be less than 1 and b should be a negative number
 
   **damage sequence parameters**
     --damage              the sequencing sample have overhanging and injured end
@@ -158,7 +166,7 @@ OPTIONS:
 
   **output parameters**
     --dir <CHAR>          output directory(default=\".\/\")
-    --output <CHAR>       prefix of output file(default=\"SimulateIlluminaSequencingByPsim\")
+    --output <CHAR>       prefix of output file(default=\"Psim_Illumina\")
 *******************************************************************************************************
 ";
 
@@ -185,6 +193,10 @@ OPTIONS:
     --error <NUM>         sequencing error rate of single base error (default=\"0.0005\")
     --qmean <NUM>         peak value of quality score(default=37)
     --qsd <NUM>           standard deviation of quality score(default=1)
+    --duplp <NUM>         duplication reads percent
+    --dupll <NUM>         duplication times limit
+    --duplpara <NUM,NUM>  duplication power low parameters, format as a-b\(such as \"0.3,-2\"\)
+                          warnings: a should be less than 1 and b should be a negative number
 
   **damage sequence parameters**
     --damage              the sequencing sample have overhanging and injured end
@@ -207,7 +219,7 @@ OPTIONS:
 
   **output parameters**
     --dir <CHAR>          output directory(default=\".\/\")
-    --output <CHAR>       prefix of output file(default=\"Simulate454SequencingByPsim\")
+    --output <CHAR>       prefix of output file(default=\"Psim_Roche\")
 *******************************************************************************************************
 ";
 
@@ -234,6 +246,10 @@ OPTIONS:
     --qmean <NUM>         peak value of quality score(default=37)
     --qsd <NUM>           standard deviation of quality score(default=1)
     --header <CHAR>       sequencing header base(default=G)
+    --duplp <NUM>         duplication reads percent
+    --dupll <NUM>         duplication times limit
+    --duplpara <NUM,NUM>  duplication power low parameters, format as a-b\(such as \"0.3,-2\"\)
+                          warnings: a should be less than 1 and b should be a negative number
 
   **damage sequence parameters**
     --damage              the sequencing sample have overhanging and injured end
@@ -256,7 +272,7 @@ OPTIONS:
 
   **output parameters**
     --dir <CHAR>          output directory(default=\".\/\")
-    --output <CHAR>       prefix of output file(default=\"SimulateSOLiDSequencingByPsim\")
+    --output <CHAR>       prefix of output file(default=\"Psim_SOLiD\")
 *******************************************************************************************************
 ";
 
@@ -399,6 +415,9 @@ elsif($Command=~/solid/i)
 	$Output||="Psim_SOLiD";
 	$Header||="G";
 }
+#######130917-18-59-here
+die "Wrong duplication percent parameter. It should be less than 1\n" if($duplpercent && $duplpercent>=1);
+die "duplication power law parameters should be seoarate by \"\,\" and a\<1 and b\<0\n" if($duplpara && (!($duplpara=~/,/)  || (split /,/,$duplpara)[0]>=1 || (split /,/,$duplpara)[1]>=0));
 
 if($Damage)
 {
@@ -700,7 +719,17 @@ sub Library
 	{
 		$readmean=$ReadLeng;
 	}
-	my @StartLeng=&PieceGenerate(length($$Sequence),$ltype,$Circle,$Coverage,$readmean,$FragmentMean,$FragmentSD,$FragLim);
+#my ($duplpercent,$dupllimit,$duplpara);
+	my @StartLeng;
+	if($duplpercent && $duplpara && $duplpara=~/,/)
+	{
+		my ($a,$b)=split/,/,$duplpara;
+		my @StartLeng=&PieceGenerate("WL",length($$Sequence),"type",$ltype,"circle",$Circle,"Coverage",$Coverage,"readmean",$readmean,"fragmean",$FragmentMean,"fragsd",$FragmentSD,"fraglim",$FragLim,"duplp",$duplpercent,"dupll",$dupllimit,"dupla",$a,"duplb",$b);
+	}
+	else
+	{
+		@StartLeng=&PieceGenerate("WL",length($$Sequence),"type",$ltype,"circle",$Circle,"Coverage",$Coverage,"readmean",$readmean,"fragmean",$FragmentMean,"fragsd",$FragmentSD,"fraglim",$FragLim,"duplp",$duplpercent,"dupll",$dupllimit);
+	}
 	$$Sequence.=substr($$Sequence,0,int($FragmentMean*2));
 	$$Sequence.=substr($$Sequence,0,int($insert*2)) if($Command=~/roche/i && $PE);
 
